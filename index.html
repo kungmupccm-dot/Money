@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>แบ่งเงินเดือน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF3F1; --surface:#FFFFFF; --ink:#16302B; --muted:#5B6F6A; --line:#D5E0DC;
+  --fixed:#3D5A80; --ess:#2F8F6B; --safe:#7A5CC2; --fun:#D99A1F; --extra:#1F8FB0; --warn:#C2453B;
+  --chip:#E2ECE8;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1A18; --surface:#172623; --ink:#E4EFEB; --muted:#93A8A2; --line:#2A3D39;
+    --fixed:#7FA2D4; --ess:#4FC193; --safe:#A68CEB; --fun:#F0B640; --extra:#4CB9DA; --warn:#EE7468;
+    --chip:#21332F; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1A18; --surface:#172623; --ink:#E4EFEB; --muted:#93A8A2; --line:#2A3D39;
+  --fixed:#7FA2D4; --ess:#4FC193; --safe:#A68CEB; --fun:#F0B640; --extra:#4CB9DA; --warn:#EE7468;
+  --chip:#21332F; color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bai Jamjuree",system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;font-size:16px;line-height:1.55}
+main{max-width:560px;margin:0 auto;padding:20px 16px 48px}
+h1{font-size:1rem;font-weight:600;margin:0 0 4px;color:var(--muted)}
+.salary{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
+.salary input{font:inherit;font-size:2.6rem;font-weight:700;color:var(--ink);background:transparent;border:0;border-bottom:2px solid var(--line);width:100%;padding:0;letter-spacing:-.01em}
+.salary input:focus{outline:none;border-color:var(--ess)}
+.salary span{font-size:1.1rem;color:var(--muted)}
+.mode{display:inline-block;font-size:.9rem;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--chip);margin:6px 0 14px}
+.mode.low{color:var(--fun)} .mode.short{color:var(--warn)} .mode.high{color:var(--extra)} .mode.ok{color:var(--ess)}
+.bar{display:flex;height:22px;border-radius:6px;overflow:hidden;background:var(--line)}
+.bar div{transition:flex-basis .4s ease}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.82rem;color:var(--muted);margin:8px 0 22px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
+section{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:14px}
+h2{font-size:1.05rem;margin:0 0 10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px}
+label{display:block;font-size:.85rem;color:var(--muted)}
+label input{display:block;width:100%;margin-top:3px;font:inherit;font-size:1rem;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+label input:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--ess);outline-offset:2px}
+.group{margin-top:14px}
+.group:first-child{margin-top:0}
+.ghead{display:flex;justify-content:space-between;font-weight:600;padding-bottom:4px;border-bottom:2px solid}
+.row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:.95rem}
+.row:last-child{border-bottom:0}
+.row .amt{font-weight:600;white-space:nowrap}
+.row .pct{color:var(--muted);font-size:.8rem;margin-left:6px;font-weight:400}
+.row .sub{display:block;font-size:.78rem;color:var(--muted)}
+.row.zero .amt{color:var(--muted)}
+.row.neg .amt{color:var(--warn)}
+.notes{margin:0;padding-left:18px;font-size:.9rem}
+.notes li{margin:4px 0}
+button{font:inherit;font-weight:600;border:0;border-radius:10px;padding:11px 16px;background:var(--ess);color:#fff;width:100%;cursor:pointer}
+button.ghost{background:var(--chip);color:var(--ink);margin-top:8px}
+details summary{cursor:pointer;font-weight:600;font-size:1.05rem}
+details .grid{margin-top:12px}
+.sh{grid-column:1/-1;font-weight:600;font-size:.9rem;margin-top:8px;color:var(--ink)}
+.mhead{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.mhead h1{margin:0}
+.mnav{width:48px;min-height:48px;padding:0;background:var(--chip);color:var(--ink);border-radius:12px;font-size:1.5rem;line-height:1;flex:none}
+.mpick{position:relative;flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:48px;padding:0 12px;background:var(--chip);border-radius:12px;cursor:pointer}
+.mpick h1{color:var(--ink);font-size:1.05rem}
+.mpick .caret{color:var(--muted)}
+.mpick input{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;opacity:0;font-size:16px;cursor:pointer}
+.hist details{border-bottom:1px solid var(--line);padding:9px 0}
+.hist details:last-child{border-bottom:0}
+.hist summary{font-weight:500;font-size:.95rem;display:flex;justify-content:space-between;gap:8px;list-style:none}
+.hist summary::-webkit-details-marker{display:none}
+.del{width:auto;background:transparent;color:var(--warn);padding:8px 0 0;font-size:.85rem}
+.empty{color:var(--muted);font-size:.9rem;margin:0}
+#importBox{display:block;width:100%;margin-top:12px;font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;resize:vertical}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .25s}
+.toast.show{opacity:1}
+.hint{font-size:.82rem;color:var(--muted);margin:8px 0 0}
+@media (prefers-reduced-motion:reduce){.bar div,.toast{transition:none}}
+</style>
+</head>
+<body>
+<main>
+  <div class="mhead"><button class="mnav" id="mPrev" aria-label="เดือนก่อน">‹</button><label class="mpick"><h1 id="monthLabel"></h1><span class="caret" aria-hidden="true">▾</span><input type="month" id="monthInput" aria-label="เลือกเดือน"></label><button class="mnav" id="mNext" aria-label="เดือนถัดไป">›</button></div>
+  <div class="salary"><input id="salary" data-path="salary" inputmode="numeric" aria-label="เงินเดือนเดือนนี้"><span>บาท</span></div>
+  <div id="mode" class="mode"></div>
+  <div class="bar" id="bar" aria-hidden="true"></div>
+  <div class="legend" id="legend"></div>
+
+  <section>
+    <h2>ยอดที่ต้องเช็กก่อนแบ่ง</h2>
+    <div class="grid">
+      <label>เงินเหลือในบัญชีค่าข้าว<input data-path="foodBal" inputmode="numeric"></label>
+      <label>ค่าไฟเดือนนี้ (จริง)<input data-path="elec" inputmode="numeric"></label>
+      <label>กันชนตอนนี้มี<input data-path="bufBal" inputmode="numeric"></label>
+      <label>เงินฉุกเฉินตอนนี้มี<input data-path="emBal" inputmode="numeric"></label>
+    </div>
+  </section>
+
+  <section>
+    <h2>โอนเข้าแต่ละกระเป๋า</h2>
+    <div id="result"></div>
+  </section>
+
+  <section id="notesBox">
+    <h2>สิ่งที่เกิดขึ้นเดือนนี้</h2>
+    <ul class="notes" id="notes"></ul>
+  </section>
+
+  <section>
+    <button id="close">ปิดเดือน: บันทึกประวัติและอัปเดตยอด</button>
+    <p class="hint">กดหลังโอนเงินครบแล้ว แอปจะเก็บเดือนนี้ไว้ในประวัติ อัปเดตยอดกันชนกับเงินฉุกเฉิน แล้วขยับไปเดือนถัดไปให้</p>
+  </section>
+
+  <section>
+    <h2>ประวัติเดือนก่อนๆ</h2>
+    <div id="history"></div>
+  </section>
+
+  <section>
+    <details>
+      <summary>ย้ายข้อมูลระหว่างเครื่อง / สำรองข้อมูล</summary>
+      <p class="hint">เครื่องต้นทาง: กดส่งออก แล้วส่งข้อความไปอีกเครื่อง (AirDrop, LINE หรือโน้ต) เครื่องปลายทาง: วางข้อความในช่องแล้วกดนำเข้า</p>
+      <button id="exportBtn" style="margin-top:10px">ส่งออกข้อมูล</button>
+      <textarea id="importBox" rows="3" placeholder="วางข้อมูลที่ส่งออกมาตรงนี้" aria-label="วางข้อมูลที่ส่งออกมา"></textarea>
+      <button class="ghost" id="importBtn">นำเข้าข้อมูล</button>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary>ตั้งค่ากระเป๋า</summary>
+      <div class="grid" id="settings"></div>
+      <button class="ghost" id="reset">คืนค่าเริ่มต้น</button>
+    </details>
+  </section>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const DEFAULT = {
+  salary:60000, foodBal:0, elec:2000, bufBal:0, emBal:0,
+  month:(()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');})(), history:[],
+  cfg:{
+    normal:60000, rent:13000, elecBudget:2000, mom:5000, foodTarget:10000, sp:5000, ins:8277,
+    food:3600, misc:2400, cat:1000,
+    buf:4800, travel:2400, shop:1800, gift:500,
+    bufCap:15000, emCap:130000,
+    sSafe:50, sTravel:30, sShop:20
+  }
+};
+const SETTINGS = [
+  ['จ่ายประจำ (จำนวนคงที่)'],
+  ['normal','เงินเดือนปกติ'],['rent','ค่าเช่า'],['elecBudget','งบค่าไฟ'],['mom','ให้แม่'],
+  ['foodTarget','บัญชีค่าข้าว (เติมให้ถึง)'],['sp','S&P500'],['ins','ประกัน 3 ตัว'],
+  ['ใช้จำเป็น (ได้ก่อนเสมอ)'],
+  ['food','กินข้าวส่วนตัว'],['misc','จิปาถะ'],['cat','ครอบครัว: ส่วนแมว (ได้ก่อน)'],
+  ['เติมตามลำดับ'],
+  ['buf','กันชน'],['travel','เที่ยว'],['shop','ช้อปปิ้ง'],['gift','ครอบครัว: ส่วนหลาน'],
+  ['เพดานกระเป๋า'],
+  ['bufCap','เพดานกันชน'],['emCap','เพดานเงินฉุกเฉิน'],
+  ['แบ่งเงินส่วนเกิน (%)'],
+  ['sSafe','กันชน/ฉุกเฉิน %'],['sTravel','เที่ยว %'],['sShop','ช้อปปิ้ง %']
+];
+const LABEL = {rent:'ค่าเช่า',elec:'ค่าไฟ',mom:'ให้แม่',topup:'เติมบัญชีค่าข้าว',sp:'S&P500',ins:'ประกัน 3 ตัว',
+  food:'กินข้าวส่วนตัว',misc:'จิปาถะ',cat:'อาหารแมว',buf:'กันชน',em:'เงินฉุกเฉิน',
+  travel:'เที่ยว',shop:'ช้อปปิ้ง',gift:'เปย์หลาน',fam:'ครอบครัว (แมว + หลาน)',spx:'ลงทุนเพิ่ม (S&P500)'};
+const GROUPS = [
+  ['จ่ายประจำ','--fixed',['rent','elec','mom','topup','sp','ins']],
+  ['ใช้จำเป็น','--ess',['food','misc','fam']],
+  ['ความปลอดภัย','--safe',['buf','em']],
+  ['ใช้สนุก','--fun',['travel','shop']],
+  ['ลงทุนเพิ่ม','--extra',['spx']]
+];
+
+let state = load();
+const num = v => { const n = parseFloat(String(v).replace(/[^\d.-]/g,'')); return isFinite(n) ? n : 0; };
+const fmt = n => Math.round(n).toLocaleString('th-TH');
+
+function load(){
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem('salary-split') || 'null'); } catch(e){}
+  return merge(s);
+}
+function merge(s){
+  const d = JSON.parse(JSON.stringify(DEFAULT));
+  if (!s || typeof s !== 'object') return d;
+  for (const k of ['salary','foodBal','elec','bufBal','emBal']) if (typeof s[k] === 'number') d[k] = s[k];
+  if (s.cfg) for (const k in d.cfg) if (typeof s.cfg[k] === 'number') d.cfg[k] = s.cfg[k];
+  if (typeof s.month === 'string' && /^\d{4}-\d{2}$/.test(s.month)) d.month = s.month;
+  if (Array.isArray(s.history)) d.history = s.history;
+  return d;
+}
+
+function compute(st){
+  const c = st.cfg, a = {}, notes = [];
+  let bufRoom = Math.max(0, c.bufCap - st.bufBal), emRoom = Math.max(0, c.emCap - st.emBal);
+  // Fixed costs (feature 3: top-up mode)
+  const topup = Math.max(0, c.foodTarget - st.foodBal);
+  a.rent = c.rent; a.elec = st.elec; a.mom = c.mom; a.topup = topup; a.sp = c.sp; a.ins = c.ins;
+  const fixed = c.rent + st.elec + c.mom + topup + c.sp + c.ins;
+  let saved = (c.foodTarget - topup) + Math.max(0, c.elecBudget - st.elec);
+  let rem = st.salary - fixed - saved; // spend as if full budget; savings handled separately
+  if (saved > 0) notes.push(`ประหยัดจากบัญชีค่าข้าว/ค่าไฟได้ ${fmt(saved)} บาท ส่งเข้ากระเป๋าความปลอดภัย`);
+  // Essentials first (feature 1)
+  let pullBuf = 0, pullEm = 0, short = 0;
+  const essNeed = c.food + c.misc + c.cat;
+  a.food = c.food; a.misc = c.misc; a.cat = c.cat;
+  rem -= essNeed;
+  if (rem < 0){
+    let need = -rem;
+    const fromSaved = Math.min(saved, need); saved -= fromSaved; need -= fromSaved;
+    if (fromSaved > 0) notes.push(`ใช้เงินที่ประหยัดได้ ${fmt(fromSaved)} บาท อุดรายจ่ายจำเป็นก่อน`);
+    pullBuf = Math.min(st.bufBal, need); need -= pullBuf;
+    pullEm = Math.min(st.emBal, need); need -= pullEm;
+    short = need; rem = 0;
+    if (pullBuf > 0) notes.push(`ดึงจากกันชน ${fmt(pullBuf)} บาท มาใช้กินข้าวและจิปาถะ`);
+    if (pullEm > 0) notes.push(`กันชนไม่พอ ต้องดึงเงินฉุกเฉิน ${fmt(pullEm)} บาท`);
+    if (short > 0) notes.push(`ยังขาดอีก ${fmt(short)} บาท ลองลดกินข้าวส่วนตัวหรือจิปาถะเดือนนี้`);
+    bufRoom += pullBuf; emRoom += pullEm;
+  }
+  // Overflow chain (feature 4)
+  a.buf = 0; a.em = 0; a.travel = 0; a.shop = 0; a.gift = 0; a.spx = 0;
+  let overflowed = false;
+  function safe(x){
+    const toBuf = Math.min(x, bufRoom); a.buf += toBuf; bufRoom -= toBuf; x -= toBuf;
+    const toEm = Math.min(x, emRoom); a.em += toEm; emRoom -= toEm; x -= toEm;
+    if (toEm > 0) overflowed = true;
+    if (x > 0){ a.travel += x/2; a.spx += x/2; overflowed = 'full'; }
+  }
+  // Waterfall (feature 2)
+  const take = t => { const v = Math.min(rem, t); rem -= v; return v; };
+  safe(take(c.buf));
+  const unmetBuf = c.buf - (a.buf + a.em + (overflowed==='full'? 0 : 0)) > 0.5 && rem <= 0;
+  const tr = take(c.travel), sh = take(c.shop), gi = take(c.gift);
+  a.travel += tr; a.shop += sh; a.gift += gi;
+  const unmetFun = (c.travel - tr) + (c.shop - sh) + (c.gift - gi);
+  if (unmetFun > 0.5 && short === 0){
+    const cut = [];
+    if (tr < c.travel) cut.push('เที่ยว'); if (sh < c.shop) cut.push('ช้อปปิ้ง'); if (gi < c.gift) cut.push('ส่วนหลานในกระเป๋าครอบครัว');
+    notes.push(`เดือนนี้งบ${cut.join(' ')}ลดลง/งดไว้ก่อน (ขาด ${fmt(unmetFun)} บาท)`);
+  }
+  // Surplus split
+  if (rem > 0){
+    const tot = c.sSafe + c.sTravel + c.sShop || 1;
+    const s1 = rem*c.sSafe/tot, s2 = rem*c.sTravel/tot, s3 = rem*c.sShop/tot;
+    a.travel += s2; a.shop += s3; safe(s1);
+    notes.push(`เงินเกินแผน ${fmt(rem)} บาท แบ่ง ${c.sSafe}/${c.sTravel}/${c.sShop} เข้าความปลอดภัย/เที่ยว/ช้อปปิ้ง`);
+  }
+  if (saved > 0) safe(saved);
+  if (overflowed === true || (overflowed && a.em > 0)) notes.push('กันชนเต็มเพดานแล้ว ส่วนที่เกินไหลเข้าเงินฉุกเฉิน');
+  if (overflowed === 'full') notes.push('เงินฉุกเฉินเต็มแล้ว ส่วนที่เกินแบ่งครึ่งเข้าเที่ยวกับลงทุนเพิ่ม');
+  a.buf -= pullBuf; a.em -= pullEm;
+  let mode;
+  if (short > 0 || pullBuf > 0 || pullEm > 0) mode = ['short','เดือนเงินน้อย: ใช้กันชนช่วย'];
+  else if (unmetFun > 0.5) mode = ['low','เดือนเงินน้อยกว่าปกติ'];
+  else if (st.salary > c.normal) mode = ['high','เดือนเงินเกิน'];
+  else mode = ['ok','เดือนปกติ'];
+  if (!notes.length) notes.push('ทุกกระเป๋าได้ครบตามแผน');
+  return {a, notes, mode, pullBuf, pullEm};
+}
+
+const $ = id => document.getElementById(id);
+function render(){
+  const r = compute(state), sal = state.salary || 1;
+  r.a.fam = r.a.cat + r.a.gift;
+  $('mode').className = 'mode ' + r.mode[0]; $('mode').textContent = r.mode[1];
+  let html = '', bar = '', leg = '';
+  for (const [name, color, keys] of GROUPS){
+    const sum = keys.reduce((t,k)=>t+r.a[k],0);
+    const visible = keys.filter(k => k !== 'spx' && k !== 'em' || Math.abs(r.a[k]) > 0.5);
+    if (!visible.length) continue;
+    html += `<div class="group"><div class="ghead" style="border-color:var(${color})"><span>${name}</span><span>${fmt(sum)}</span></div>`;
+    for (const k of visible){
+      const v = r.a[k];
+      let sub = '';
+      if (k==='topup') sub = `<span class="sub">เติมให้บัญชีค่าข้าวครบ ${fmt(state.cfg.foodTarget)}</span>`;
+      if (k==='fam') sub = `<span class="sub">แมว ${fmt(r.a.cat)} + หลาน ${fmt(r.a.gift)}${r.a.gift < state.cfg.gift - 0.5 ? ' (ส่วนหลานลดลงเดือนนี้)' : ''}</span>`;
+      if (k==='buf' && v<0) sub = `<span class="sub">ติดลบ = ดึงออกจากกันชน</span>`;
+      if (k==='em' && v<0) sub = `<span class="sub">ติดลบ = ดึงออกจากเงินฉุกเฉิน</span>`;
+      html += `<div class="row ${Math.abs(v)<0.5?'zero':''} ${v<0?'neg':''}"><span>${LABEL[k]}${sub}</span><span class="amt">${fmt(v)}<span class="pct">${(v/sal*100).toFixed(1)}%</span></span></div>`;
+    }
+    html += '</div>';
+    if (sum > 0){ bar += `<div style="flex-basis:${sum/sal*100}%;background:var(${color})"></div>`; leg += `<span><i style="background:var(${color})"></i>${name} ${(sum/sal*100).toFixed(0)}%</span>`; }
+  }
+  $('result').innerHTML = html; $('bar').innerHTML = bar; $('legend').innerHTML = leg;
+  $('notes').innerHTML = r.notes.map(n=>`<li>${n}</li>`).join('');
+  lastResult = r;
+  $('monthLabel').textContent = 'เงินเดือน ' + mLabel(state.month);
+  $('monthInput').value = state.month;
+  renderHistory();
+}
+let lastResult = null;
+
+function bindInputs(){
+  document.querySelectorAll('[data-path]').forEach(el => {
+    const p = el.dataset.path;
+    el.value = fmt(get(p));
+    el.oninput = () => { set(p, num(el.value)); render(); save(); };
+    el.onblur = () => { el.value = fmt(get(p)); };
+    el.onfocus = () => { el.value = get(p) || ''; el.select(); };
+  });
+}
+const get = p => p.startsWith('cfg.') ? state.cfg[p.slice(4)] : state[p];
+const set = (p,v) => { if (p.startsWith('cfg.')) state.cfg[p.slice(4)] = v; else state[p] = v; };
+
+function buildSettings(){
+  $('settings').innerHTML = SETTINGS.map(s => s.length === 1
+    ? `<div class="sh">${s[0]}</div>`
+    : `<label>${s[1]}<input data-path="cfg.${s[0]}" inputmode="numeric"></label>`).join('');
+}
+
+let saveTimer = null, dbRef = null;
+function save(){
+  try { localStorage.setItem('salary-split', JSON.stringify(state)); } catch(e){}
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { if (dbRef) dbRef.set(JSON.parse(JSON.stringify(state))).catch(()=>{}); }, 800);
+}
+function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), 2200); }
+
+const TH_M = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const mLabel = m => { const [y,mo] = m.split('-').map(Number); return TH_M[mo-1] + ' ' + (y+543); };
+const shiftMonth = (m,n) => { let [y,mo] = m.split('-').map(Number); mo += n; while(mo>12){mo-=12;y++;} while(mo<1){mo+=12;y--;} return y+'-'+String(mo).padStart(2,'0'); };
+$('mPrev').onclick = () => { state.month = shiftMonth(state.month,-1); render(); save(); };
+$('mNext').onclick = () => { state.month = shiftMonth(state.month,1); render(); save(); };
+$('monthInput').onchange = e => { const v = e.target.value; if (/^\d{4}-\d{2}$/.test(v)) { state.month = v; render(); save(); } };
+
+$('close').onclick = () => {
+  const r = lastResult; if (!r) return;
+  const old = state.history.find(h => h.month === state.month);
+  if (old){
+    if (!confirm(`${mLabel(state.month)} ปิดไปแล้ว ต้องการบันทึกทับไหม`)) return;
+    state.bufBal = Math.max(0, state.bufBal - old.dBuf);
+    state.emBal = Math.max(0, state.emBal - old.dEm);
+    state.history = state.history.filter(h => h !== old);
+  }
+  const a = {}; for (const k in r.a) a[k] = Math.round(r.a[k]);
+  state.bufBal = Math.max(0, state.bufBal + r.a.buf);
+  state.emBal = Math.max(0, state.emBal + r.a.em);
+  state.history.push({month:state.month, salary:state.salary, mode:r.mode[1], a, dBuf:Math.round(r.a.buf), dEm:Math.round(r.a.em), bufAfter:Math.round(state.bufBal), emAfter:Math.round(state.emBal)});
+  state.history.sort((x,y) => y.month.localeCompare(x.month));
+  const closed = state.month;
+  state.month = shiftMonth(state.month, 1);
+  bindInputs(); render(); save();
+  toast(`ปิด${mLabel(closed)}แล้ว กันชน ${fmt(state.bufBal)} / ฉุกเฉิน ${fmt(state.emBal)}`);
+};
+function renderHistory(){
+  const box = $('history');
+  if (!state.history.length){ box.className = ''; box.innerHTML = '<p class="empty">ยังไม่มีประวัติ กดปิดเดือนครั้งแรกแล้วจะขึ้นที่นี่</p>'; return; }
+  box.className = 'hist';
+  box.innerHTML = state.history.map((h,i) => {
+    let rows = '';
+    for (const [name, color, keys] of GROUPS){
+      const sum = keys.reduce((t,k)=>t+(h.a[k]||0),0);
+      if (Math.abs(sum) < 1) continue;
+      rows += `<div class="ghead" style="border-color:var(${color});margin-top:10px"><span>${name}</span><span>${fmt(sum)}</span></div>`;
+      for (const k of keys){ const v = h.a[k]||0; if (Math.abs(v)<1) continue; rows += `<div class="row ${v<0?'neg':''}"><span>${LABEL[k]}</span><span class="amt">${fmt(v)}</span></div>`; }
+    }
+    rows += `<div class="row"><span>ยอดกันชนหลังปิดเดือน</span><span class="amt">${fmt(h.bufAfter)}</span></div><div class="row"><span>ยอดเงินฉุกเฉินหลังปิดเดือน</span><span class="amt">${fmt(h.emAfter)}</span></div>`;
+    return `<details><summary><span>${mLabel(h.month)} · ${h.mode}</span><span>${fmt(h.salary)}</span></summary>${rows}<button class="del" data-i="${i}">ลบเดือนนี้</button></details>`;
+  }).join('');
+  box.querySelectorAll('.del').forEach(b => b.onclick = () => {
+    if (!confirm('ลบประวัติเดือนนี้? (ยอดกันชนและเงินฉุกเฉินปัจจุบันจะไม่เปลี่ยน)')) return;
+    state.history.splice(+b.dataset.i, 1); render(); save();
+  });
+}
+$('reset').onclick = () => {
+  state.cfg = JSON.parse(JSON.stringify(DEFAULT.cfg));
+  bindInputs(); render(); save(); toast('คืนค่าเริ่มต้นแล้ว');
+};
+
+const encode = () => 'SALARY1:' + btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+$('exportBtn').onclick = async () => {
+  const text = encode();
+  try { if (navigator.share) { await navigator.share({title:'ข้อมูลแบ่งเงินเดือน', text}); return; } } catch(e){ if (e && e.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(text); toast('คัดลอกข้อมูลแล้ว'); }
+  catch(e){ $('importBox').value = text; $('importBox').select(); toast('กดค้างในช่องแล้วคัดลอกเองได้เลย'); }
+};
+$('importBtn').onclick = () => {
+  const raw = $('importBox').value.trim();
+  let s;
+  try { if (!raw.startsWith('SALARY1:')) throw 0; s = JSON.parse(decodeURIComponent(escape(atob(raw.slice(8))))); }
+  catch(e){ toast('ข้อมูลไม่ถูกต้อง ลองคัดลอกใหม่อีกครั้ง'); return; }
+  if (!confirm('นำเข้าข้อมูลนี้แทนข้อมูลในเครื่องนี้?')) return;
+  state = merge(s); bindInputs(); render(); save();
+  $('importBox').value = ''; toast('นำเข้าข้อมูลแล้ว');
+};
+
+buildSettings(); bindInputs(); render();
+
+(async () => {
+  try {
+    if (!window.claude || !window.claude.use) return;
+    const [db, user] = await Promise.all([claude.use('db'), claude.use('user')]);
+    if (!db || !user) return;
+    const id = await user.id(); if (!id) return;
+    dbRef = db.doc('data/users/' + id + '/budget');
+    const snap = await dbRef.get();
+    if (snap.exists){ state = merge(snap.data()); bindInputs(); render(); }
+    else save();
+  } catch(e){}
+})();
+</script>
+</body>
+</html>
